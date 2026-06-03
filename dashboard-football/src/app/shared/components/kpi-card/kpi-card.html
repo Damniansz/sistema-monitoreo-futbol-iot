@@ -1,0 +1,53 @@
+<div class="bg-white border border-slate-200 dark:bg-[#0d1222]/80 dark:border-slate-800 rounded-xl p-4 select-none transition-colors duration-200 shadow-sm dark:shadow-none">
+  <div class="flex items-center justify-between">
+    <span class="text-xs text-slate-550 dark:text-slate-400 font-medium">{{ title }}</span>
+    
+    <!-- Flat Subtle Icon -->
+    <div class="text-slate-400 dark:text-slate-500"
+         [class.text-teal-500]="theme === 'teal'"
+         [class.text-amber-500]="theme === 'amber'"
+         [class.text-rose-500]="theme === 'rose'"
+         [class.text-sky-500]="theme === 'sky'"
+         [class.text-emerald-500]="theme === 'emerald'"
+         
+         [class.dark:text-teal-400]="theme === 'teal'"
+         [class.dark:text-amber-400]="theme === 'amber'"
+         [class.dark:text-rose-400]="theme === 'rose'"
+         [class.dark:text-sky-400]="theme === 'sky'"
+         [class.dark:text-emerald-400]="theme === 'emerald'">
+      
+      @if (theme === 'teal') {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      } @else if (theme === 'amber') {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      } @else if (theme === 'rose') {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+        </svg>
+      } @else if (theme === 'sky') {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+      } @else {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      }
+    </div>
+  </div>
+
+  <div class="mt-2 flex items-baseline gap-1">
+    <strong class="text-2xl font-bold text-slate-800 dark:text-slate-100 font-mono transition-colors duration-200">{{ value }}</strong>
+    @if (unit) {
+      <span class="text-xs text-slate-400 dark:text-slate-500 font-mono font-medium">{{ unit }}</span>
+    }
+  </div>
+
+  @if (subtitle) {
+    <p class="mt-1 text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ subtitle }}</p>
+  }
+</div>

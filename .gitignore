@@ -1,0 +1,27 @@
+# --- Frontend (Angular) ---
+**/node_modules/
+**/.angular/
+**/dist/
+**/tmp/
+.env
+
+# --- Backend (Spring Boot / Maven) ---
+**/target/
+**/.mvn/
+**/mvnw
+**/mvnw.cmd
+.metadata/
+.classpath
+.project
+.settings/
+
+# --- IDEs & OS ---
+**/.idea/
+**/.vscode/
+**/*.suo
+**/*.ntvs*
+**/*.njsproj
+**/*.sln
+**/*.sw?
+Thumbs.db
+.DS_Store

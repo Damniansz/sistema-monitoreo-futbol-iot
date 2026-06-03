@@ -1,0 +1,17 @@
+<div class="flex min-h-screen bg-slate-50 text-slate-800 dark:bg-[#0b0f19] dark:text-slate-100 font-sans transition-colors duration-250">
+
+  <app-sidebar />
+
+  <div class="flex-1 flex flex-col min-h-screen overflow-hidden">
+
+    <app-navbar />
+
+    <main class="flex-1 overflow-y-auto p-6 bg-slate-100/20 dark:bg-[#0b0f19]/30">
+
+      <router-outlet />
+
+    </main>
+
+  </div>
+
+</div>

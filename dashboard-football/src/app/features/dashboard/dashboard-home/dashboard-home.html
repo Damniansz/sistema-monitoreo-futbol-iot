@@ -1,0 +1,541 @@
+<section class="dashboard-shell space-y-5 text-slate-750 dark:text-slate-200 transition-colors duration-200">
+  
+  <!-- Hero Analytics Header -->
+  <header class="rounded-xl border border-slate-200 bg-white p-5 md:p-6 dark:border-slate-800 dark:bg-[#0d1222]/80 shadow-sm transition-colors duration-200">
+    <div class="grid gap-4 md:grid-cols-[1.8fr_1fr] items-center">
+      <div>
+        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest font-mono">Panel Analítico</span>
+        <h1 class="text-lg font-bold text-slate-800 dark:text-white mt-1 leading-tight transition-colors">
+          Consola de Rendimiento y Telemetría Táctica
+        </h1>
+        <p class="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed max-w-xl">
+          Monitoreo en vivo de la intensidad de carrera, posicionamiento táctico y carga de esfuerzo del plantel. Selecciona jugadores para filtrar su huella en cancha y analizar sus perfiles físicos de velocidad.
+        </p>
+      </div>
+
+      <!-- Quick Stats summary -->
+      <div class="grid grid-cols-2 gap-3 bg-slate-50 border border-slate-200 dark:bg-slate-950/20 dark:border-slate-800 p-3 rounded-xl font-mono text-[10px] text-slate-600 dark:text-slate-300 transition-colors duration-200">
+        <div>
+          <span class="text-slate-400 dark:text-slate-500 block">Canal IoT</span>
+          <strong class="text-slate-800 dark:text-slate-200 font-bold block mt-0.5">{{ wsService.status() }}</strong>
+        </div>
+        <div>
+          <span class="text-slate-400 dark:text-slate-500 block">Último Registro</span>
+          <strong class="text-slate-800 dark:text-slate-200 font-bold block mt-0.5 truncate">
+            {{ wsService.logs()[0] ? wsService.logs()[0].title : 'Ninguno' }}
+          </strong>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI Grid -->
+  <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <app-kpi-card 
+      title="Jugadores Conectados" 
+      [value]="wsService.connectedPlayersCount()" 
+      theme="teal" 
+      subtitle="Dispositivos activos en la red">
+    </app-kpi-card>
+
+    <app-kpi-card 
+      title="Velocidad Promedio" 
+      [value]="(wsService.averageSpeed() | number:'1.1-1') || '0.0'" 
+      unit="km/h" 
+      theme="amber" 
+      subtitle="Ritmo medio actual">
+    </app-kpi-card>
+
+    <app-kpi-card 
+      title="Distancia Acumulada" 
+      [value]="(wsService.totalDistance() | number:'1.0-0') || '0'" 
+      unit="m" 
+      theme="rose" 
+      subtitle="Esfuerzo acumulado">
+    </app-kpi-card>
+
+    <app-kpi-card 
+      title="Alertas Activas" 
+      [value]="wsService.alertCount()" 
+      theme="sky" 
+      subtitle="Jugadores sobre 30 km/h">
+    </app-kpi-card>
+  </section>
+
+  <!-- Content Grid: Heatmap, Trend Chart + Tactical Field, Status -->
+  <section class="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+    <div class="space-y-5">
+      
+      <!-- Visual Tactical Heatmap Panel -->
+      <article class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-[#0d1222]/80 transition-colors duration-200 shadow-sm dark:shadow-none">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-3 gap-2">
+          <div>
+            <h2 class="text-xs font-semibold text-slate-800 dark:text-slate-200">Mapa de Calor Táctico Interactiva</h2>
+            <p class="text-[10px] text-slate-500">Historial táctico de presencia en cancha e intensidad física</p>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <!-- Player Select Dropdown -->
+            <select (change)="onPlayerChange($event)" class="text-[10px] bg-slate-50 border border-slate-200 dark:bg-[#0b0f19] dark:border-slate-800 dark:text-slate-300 rounded px-2 py-1 focus:outline-none">
+              <option value="all">Todo el Equipo</option>
+              @for (p of wsService.players(); track p.player) {
+                <option [value]="p.player" [selected]="selectedPlayer() === p.player">{{ p.player }}</option>
+              }
+            </select>
+            
+            <!-- Mode Selector Buttons -->
+            <div class="flex items-center border border-slate-200 dark:border-slate-800 rounded overflow-hidden">
+              <button (click)="onModeChange('occupancy')" 
+                      [class]="heatmapMode() === 'occupancy' ? 'bg-teal-500 text-white font-semibold' : 'bg-slate-50 text-slate-600 dark:bg-[#0b0f19] dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                      class="text-[9px] px-2.5 py-1.5 cursor-pointer transition-colors border-r border-slate-200 dark:border-slate-800">
+                Presencia
+              </button>
+              <button (click)="onModeChange('speed')" 
+                      [class]="heatmapMode() === 'speed' ? 'bg-teal-500 text-white font-semibold' : 'bg-slate-50 text-slate-600 dark:bg-[#0b0f19] dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                      class="text-[9px] px-2.5 py-1.5 cursor-pointer transition-colors">
+                Velocidad
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Heatmap canvas (mini pitch) -->
+        <div class="relative w-full h-[240px] bg-[#143d25] rounded-xl overflow-hidden shadow-inner border border-slate-300 dark:border-slate-950">
+          
+          <!-- Mini Pitch Markings -->
+          <div class="absolute inset-3 border border-white/10 rounded pointer-events-none">
+            <div class="absolute left-1/2 top-0 bottom-0 border-l border-white/10 -translate-x-1/2"></div>
+            <div class="absolute left-1/2 top-1/2 w-16 h-16 border border-white/10 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-24 border border-l-0 border-white/10"></div>
+            <div class="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-24 border border-r-0 border-white/10"></div>
+          </div>
+
+          <!-- Heat spots mapping coordinates -->
+          @for (pt of heatmapPoints(); track $index) {
+            <div class="absolute -translate-x-1/2 -translate-y-1/2 rounded-full blur-md transition-all duration-300 pointer-events-none"
+                 [class]="pt.colorClass"
+                 [style.left.%]="pt.x"
+                 [style.top.%]="pt.y"
+                 [style.width.px]="pt.size"
+                 [style.height.px]="pt.size"
+                 [style.opacity]="pt.opacity">
+            </div>
+          }
+
+          <!-- Live tracking spots indicator legends -->
+          @if (heatmapMode() === 'speed') {
+            <div class="absolute bottom-2 right-2 bg-slate-950/80 backdrop-blur-sm border border-white/10 p-1.5 rounded text-[8px] font-mono text-white flex flex-col gap-1 z-10 pointer-events-none">
+              <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Caminata (&lt;5)</span>
+              <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span>Trote (5-12)</span>
+              <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Carrera (12-25)</span>
+              <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>Sprint (&gt;25)</span>
+            </div>
+          }
+        </div>
+      </article>
+
+      <!-- Advanced Speed Trend Chart for Coaches -->
+      <article class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-[#0d1222]/80 transition-colors duration-200 shadow-sm dark:shadow-none relative">
+        <div class="flex items-start justify-between border-b border-slate-200 dark:border-slate-800 pb-2 mb-3">
+          <div>
+            <h2 class="text-xs font-semibold text-slate-800 dark:text-slate-200">Tendencia de Intensidad de Carrera</h2>
+            <p class="text-[10px] text-slate-500">Historial de ritmo del equipo vs picos individuales de velocidad</p>
+          </div>
+          <!-- Legend -->
+          <div class="flex items-center gap-3 text-[9px] font-mono font-medium">
+            <span class="flex items-center gap-1">
+              <span class="w-2.5 h-0.5 bg-teal-500 inline-block"></span> 
+              <span class="text-slate-600 dark:text-slate-400">Media Equipo</span>
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="w-2.5 h-px border-t border-dashed border-rose-500 inline-block"></span> 
+              <span class="text-slate-600 dark:text-slate-400">Pico Máximo</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="overflow-hidden rounded-lg bg-slate-50 dark:bg-[#0b0f19]/30 border border-slate-200 dark:border-slate-800 p-1 relative">
+          <!-- SVG Trend lines -->
+          <svg viewBox="0 0 420 180" 
+               (mousemove)="onChartMouseMove($event)"
+               (mouseleave)="onChartMouseLeave()"
+               class="w-full h-[140px] overflow-visible select-none cursor-crosshair" 
+               aria-label="Trend chart">
+            <defs>
+              <linearGradient id="avgGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#14b8a6" stop-opacity="0.18" />
+                <stop offset="100%" stop-color="#14b8a6" stop-opacity="0.0" />
+              </linearGradient>
+            </defs>
+
+            <!-- Shaded Speed Zones (High-contrast context for the coach) -->
+            <!-- Sprint Zone (>25 km/h) -->
+            <rect x="0" y="15" width="420" height="43" class="fill-rose-500/[0.04] dark:fill-rose-500/[0.06]" />
+            <!-- Running Zone (12-25 km/h) -->
+            <rect x="0" y="58" width="420" height="56" class="fill-amber-500/[0.03] dark:fill-amber-500/[0.05]" />
+            <!-- Jogging Zone (5-12 km/h) -->
+            <rect x="0" y="114" width="420" height="30" class="fill-teal-500/[0.03] dark:fill-teal-500/[0.05]" />
+            <!-- Walking Zone (<5 km/h) -->
+            <rect x="0" y="144" width="420" height="21" class="fill-slate-500/[0.04] dark:fill-slate-500/[0.06]" />
+
+            <!-- Boundary Zone Lines -->
+            <line x1="0" y1="58" x2="420" y2="58" class="stroke-slate-200/60 dark:stroke-slate-800/40" stroke-width="0.8" stroke-dasharray="3,3" />
+            <line x1="0" y1="114" x2="420" y2="114" class="stroke-slate-200/60 dark:stroke-slate-800/40" stroke-width="0.8" stroke-dasharray="3,3" />
+            <line x1="0" y1="144" x2="420" y2="144" class="stroke-slate-200/60 dark:stroke-slate-800/40" stroke-width="0.8" stroke-dasharray="3,3" />
+
+            <!-- Zone Text Indicators (on Left side) -->
+            <text x="8" y="32" class="fill-rose-600 dark:fill-rose-400 text-[7.5px] font-sans font-bold tracking-wider uppercase opacity-80">Sprint (>25)</text>
+            <text x="8" y="75" class="fill-amber-600 dark:fill-amber-500 text-[7.5px] font-sans font-bold tracking-wider uppercase opacity-80">Carrera (12-25)</text>
+            <text x="8" y="126" class="fill-teal-600 dark:fill-teal-400 text-[7.5px] font-sans font-bold tracking-wider uppercase opacity-80">Trote (5-12)</text>
+            <text x="8" y="156" class="fill-slate-500 text-[7.5px] font-sans font-bold tracking-wider uppercase opacity-80">Caminata (<5)</text>
+
+            <!-- Plot Shaded Area Under Average Speed Curve -->
+            @if (avgTrendAreaPath()) {
+              <path [attr.d]="avgTrendAreaPath()" fill="url(#avgGradient)"></path>
+            }
+
+            <!-- Plot Team Average Speed (Smooth curved line) -->
+            @if (avgTrendPath()) {
+              <path [attr.d]="avgTrendPath()" fill="none" class="stroke-teal-500 dark:stroke-teal-400" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            }
+
+            <!-- Plot Maximum Speed Peak (Smooth curved dashed line) -->
+            @if (maxTrendPath()) {
+              <path [attr.d]="maxTrendPath()" fill="none" class="stroke-rose-500 dark:stroke-rose-400" stroke-width="1.2" stroke-dasharray="3,3" stroke-linecap="round" stroke-linejoin="round"></path>
+            }
+
+            <!-- Hover tracker line and indicator circles -->
+            @if (hoveredData(); as data) {
+              <line [attr.x1]="data.x" [attr.y1]="15" [attr.x2]="data.x" [attr.y2]="165" class="stroke-slate-300 dark:stroke-slate-700" stroke-width="1" stroke-dasharray="3,3" />
+              <circle [attr.cx]="data.x" [attr.cy]="data.yAvg" r="4.5" class="fill-teal-500 stroke-white dark:stroke-[#0d1222]" stroke-width="1.5" />
+              <circle [attr.cx]="data.x" [attr.cy]="data.yMax" r="4.5" class="fill-rose-500 stroke-white dark:stroke-[#0d1222]" stroke-width="1.5" />
+            }
+
+            @if (!avgTrendPath() && !maxTrendPath()) {
+              <text x="210" y="95" class="fill-slate-400 dark:fill-slate-600" font-size="10" text-anchor="middle" font-family="monospace">
+                Calculando telemetría...
+              </text>
+            }
+          </svg>
+
+          <!-- Interactive Tooltip Overlay Card -->
+          @if (hoveredData(); as data) {
+            <div class="absolute bg-slate-950/95 text-white border border-slate-800 p-2 rounded shadow-lg text-[9px] pointer-events-none z-30 flex flex-col gap-1 -translate-y-full mb-2"
+                 [style.left.%]="(data.x / 420) * 100"
+                 [style.top.px]="Math.max(65, data.yAvg - 5)"
+                 [class.-translate-x-1/2]="data.x > 50 && data.x < 370"
+                 [class.-translate-x-full]="data.x >= 370"
+                 [class.translate-x-0]="data.x <= 50">
+              <div class="font-mono text-slate-400 border-b border-slate-800 pb-0.5 font-bold uppercase tracking-wider text-[8px] flex justify-between gap-4">
+                <span>Sesión</span>
+                <span class="text-teal-400 font-semibold">{{ data.timeLabel }}</span>
+              </div>
+              <div class="flex items-center gap-2 font-mono">
+                <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
+                <span class="text-slate-400">Media Equipo:</span>
+                <strong class="text-teal-300 font-bold ml-auto">{{ data.avgVal | number:'1.1-1' }} km/h</strong>
+              </div>
+              <div class="flex items-center gap-2 font-mono">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                <span class="text-slate-400">Pico Máximo:</span>
+                <strong class="text-rose-300 font-bold ml-auto">{{ data.maxVal | number:'1.1-1' }} km/h</strong>
+              </div>
+            </div>
+          }
+        </div>
+      </article>
+
+      <!-- Player Physical Effort Breakdown Card (Speed Zone Stacked Bars) -->
+      <article class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-[#0d1222]/80 transition-colors duration-200 shadow-sm dark:shadow-none">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5 mb-3 gap-2">
+          <div>
+            <h2 class="text-xs font-semibold text-slate-800 dark:text-slate-200">Perfil de Esfuerzo Físico (Zonas de Velocidad)</h2>
+            <p class="text-[10px] text-slate-500">Distribución porcentual del tiempo de juego y sprints realizados</p>
+          </div>
+          
+          <!-- Legends -->
+          <div class="flex items-center gap-2 text-[8px] font-mono text-slate-500 dark:text-slate-400">
+            <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-slate-350 dark:bg-slate-600 rounded-sm"></span>Walk</span>
+            <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-teal-500 rounded-sm"></span>Jog</span>
+            <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-amber-500 rounded-sm"></span>Run</span>
+            <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-rose-500 rounded-sm"></span>Sprint</span>
+          </div>
+        </div>
+        
+        <div class="space-y-3.5">
+          @for (player of playerEfforts(); track player.name) {
+            <div class="space-y-1">
+              <!-- Player Title and Stats -->
+              <div class="flex justify-between items-center text-[10px] font-mono">
+                <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full"
+                        [class.bg-emerald-500]="player.status === 'Activo'"
+                        [class.bg-amber-500]="player.status === 'Reposo'"
+                        [class.bg-slate-400]="player.status === 'offline'">
+                  </span>
+                  {{ player.name }}
+                </span>
+                
+                <div class="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+                  <span>Vel: <strong class="text-slate-700 dark:text-white">{{ player.speed | number:'1.1-1' }} km/h</strong></span>
+                  <span>Sprints: <strong class="text-rose-500 font-bold">{{ player.sprints }}</strong></span>
+                  <span>Dist: <strong class="text-slate-700 dark:text-white">{{ player.distance | number:'1.0-0' }} m</strong></span>
+                </div>
+              </div>
+              
+              <!-- Stacked Bar Chart -->
+              <div class="relative w-full h-2 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800/40 flex">
+                <!-- Walk -->
+                @if (player.zones.walk > 0) {
+                  <div class="h-full bg-slate-350 dark:bg-slate-600 transition-all duration-500" 
+                       [style.width.%]="player.zones.walk"
+                       [title]="'Caminata: ' + player.zones.walk + '%'"></div>
+                }
+                <!-- Jog -->
+                @if (player.zones.trot > 0) {
+                  <div class="h-full bg-teal-500 transition-all duration-500" 
+                       [style.width.%]="player.zones.trot"
+                       [title]="'Trote: ' + player.zones.trot + '%'"></div>
+                }
+                <!-- Run -->
+                @if (player.zones.run > 0) {
+                  <div class="h-full bg-amber-500 transition-all duration-500" 
+                       [style.width.%]="player.zones.run"
+                       [title]="'Carrera: ' + player.zones.run + '%'"></div>
+                }
+                <!-- Sprint -->
+                @if (player.zones.sprint > 0) {
+                  <div class="h-full bg-rose-500 transition-all duration-500" 
+                       [style.width.%]="player.zones.sprint"
+                       [title]="'Sprint: ' + player.zones.sprint + '%'"></div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </article>
+      
+    </div>
+
+    <!-- Right Side Panel: Tactical Field, Status Card, and Session Analysis -->
+    <div class="space-y-5">
+      
+      <article class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-[#0d1222]/80 transition-colors duration-200 shadow-sm dark:shadow-none">
+        <div class="border-b border-slate-200 dark:border-slate-800 pb-2 mb-3">
+          <h2 class="text-xs font-semibold text-slate-800 dark:text-slate-200">Posiciones en Cancha</h2>
+        </div>
+
+        <app-football-field [players]="wsService.players()" />
+      </article>
+
+      <app-status-card></app-status-card>
+
+      <!-- Advanced Session Analysis Tabbed Widget -->
+      <article class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-[#0d1222]/80 transition-colors duration-200 shadow-sm dark:shadow-none">
+        <!-- Tabs Header Buttons -->
+        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 gap-1">
+          <div class="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded p-0.5 w-full bg-slate-50 dark:bg-[#0b0f19] select-none">
+            <button (click)="onTabChange('leaders')"
+                    [class]="activeTab() === 'leaders' ? 'bg-teal-500 text-white font-semibold shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                    class="text-[9px] px-2 py-1.5 rounded transition-all cursor-pointer flex-1 text-center whitespace-nowrap">
+              Líderes
+            </button>
+            <button (click)="onTabChange('compare')"
+                    [class]="activeTab() === 'compare' ? 'bg-teal-500 text-white font-semibold shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                    class="text-[9px] px-2 py-1.5 rounded transition-all cursor-pointer flex-1 text-center whitespace-nowrap">
+              Comparador
+            </button>
+            <button (click)="onTabChange('group')"
+                    [class]="activeTab() === 'group' ? 'bg-teal-500 text-white font-semibold shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                    class="text-[9px] px-2 py-1.5 rounded transition-all cursor-pointer flex-1 text-center whitespace-nowrap">
+              Carga Grupal
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 1: Leaders content -->
+        @if (activeTab() === 'leaders') {
+          @if (sessionLeaders(); as leaders) {
+            <div class="space-y-2.5 font-mono text-[10px]">
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#0b0f19]/40 border border-slate-200/50 dark:border-slate-850/50">
+                <div class="flex items-center gap-2">
+                  <span class="p-1 rounded bg-rose-100 dark:bg-rose-950/40 text-rose-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </span>
+                  <div>
+                    <span class="text-slate-400 dark:text-slate-500 font-sans block text-[7.5px] uppercase tracking-wider">Velocidad Pico</span>
+                    <strong class="text-slate-800 dark:text-slate-250 font-bold block">{{ leaders.speed.name }}</strong>
+                  </div>
+                </div>
+                <strong class="text-rose-500 font-bold text-xs">{{ leaders.speed.value | number:'1.1-1' }} <span class="text-[8px] font-normal text-slate-400">km/h</span></strong>
+              </div>
+
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#0b0f19]/40 border border-slate-200/50 dark:border-slate-850/50">
+                <div class="flex items-center gap-2">
+                  <span class="p-1 rounded bg-teal-100 dark:bg-teal-950/40 text-teal-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                  </span>
+                  <div>
+                    <span class="text-slate-400 dark:text-slate-500 font-sans block text-[7.5px] uppercase tracking-wider">Mayor Distancia</span>
+                    <strong class="text-slate-800 dark:text-slate-250 font-bold block">{{ leaders.distance.name }}</strong>
+                  </div>
+                </div>
+                <strong class="text-teal-605 dark:text-teal-400 font-bold text-xs">{{ leaders.distance.value | number:'1.0-0' }} <span class="text-[8px] font-normal text-slate-400 font-sans">m</span></strong>
+              </div>
+
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#0b0f19]/40 border border-slate-200/50 dark:border-slate-850/50">
+                <div class="flex items-center gap-2">
+                  <span class="p-1 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </span>
+                  <div>
+                    <span class="text-slate-400 dark:text-slate-500 font-sans block text-[7.5px] uppercase tracking-wider">Más Activo (Sprints)</span>
+                    <strong class="text-slate-800 dark:text-slate-250 font-bold block">{{ leaders.sprints.name }}</strong>
+                  </div>
+                </div>
+                <strong class="text-amber-600 dark:text-amber-400 font-bold text-xs">{{ leaders.sprints.value }} <span class="text-[8px] font-normal text-slate-400 font-sans">Sprints</span></strong>
+              </div>
+            </div>
+          } @else {
+            <p class="text-slate-400 dark:text-slate-550 font-mono text-[9px] text-center py-4">Esperando datos de telemetría...</p>
+          }
+        }
+
+        <!-- Tab 2: Compare content -->
+        @if (activeTab() === 'compare') {
+          @if (comparedPlayers(); as compared) {
+            <div class="space-y-2.5 text-[10px]">
+              <!-- Player Selectors -->
+              <div class="grid grid-cols-2 gap-2 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
+                <select (change)="onCompareP1Change($event)" class="text-[9px] bg-slate-50 border border-slate-200 dark:bg-[#0b0f19] dark:border-slate-800 dark:text-slate-300 rounded px-1.5 py-1 focus:outline-none">
+                  @for (p of wsService.players(); track p.player) {
+                    <option [value]="p.player" [selected]="compared.p1.name === p.player">{{ p.player }}</option>
+                  }
+                </select>
+                <select (change)="onCompareP2Change($event)" class="text-[9px] bg-slate-50 border border-slate-200 dark:bg-[#0b0f19] dark:border-slate-800 dark:text-slate-300 rounded px-1.5 py-1 focus:outline-none">
+                  @for (p of wsService.players(); track p.player) {
+                    <option [value]="p.player" [selected]="compared.p2.name === p.player">{{ p.player }}</option>
+                  }
+                </select>
+              </div>
+
+              <!-- Comparison Table -->
+              <div class="space-y-2 font-mono">
+                <!-- Status Row -->
+                <div class="flex justify-between items-center text-[9px] border-b border-slate-100 dark:border-slate-900/50 pb-1.5">
+                  <span class="text-emerald-500 font-bold" [class.text-amber-500]="compared.p1.status === 'Reposo'">{{ compared.p1.status }}</span>
+                  <span class="text-slate-400 dark:text-slate-500 font-sans uppercase font-bold text-[7.5px]">Estado</span>
+                  <span class="text-emerald-500 font-bold" [class.text-amber-500]="compared.p2.status === 'Reposo'">{{ compared.p2.status }}</span>
+                </div>
+
+                <!-- Speed Row -->
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-900/50 pb-1.5">
+                  <strong class="text-slate-800 dark:text-slate-250 font-bold">{{ compared.p1.speed | number:'1.1-1' }} km/h</strong>
+                  <span class="text-slate-400 dark:text-slate-500 font-sans text-[7.5px] uppercase tracking-wider">Vel. Actual</span>
+                  <strong class="text-slate-800 dark:text-slate-250 font-bold">{{ compared.p2.speed | number:'1.1-1' }} km/h</strong>
+                </div>
+
+                <!-- Peak Speed Row -->
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-900/50 pb-1.5">
+                  <strong class="text-rose-500 font-bold">{{ compared.p1.maxSpeed | number:'1.1-1' }} km/h</strong>
+                  <span class="text-slate-400 dark:text-slate-500 font-sans text-[7.5px] uppercase tracking-wider">Vel. Máxima</span>
+                  <strong class="text-rose-500 font-bold">{{ compared.p2.maxSpeed | number:'1.1-1' }} km/h</strong>
+                </div>
+
+                <!-- Distance Row -->
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-900/50 pb-1.5">
+                  <strong class="text-teal-650 dark:text-teal-400 font-bold">{{ compared.p1.distance | number:'1.0-0' }} m</strong>
+                  <span class="text-slate-400 dark:text-slate-500 font-sans text-[7.5px] uppercase tracking-wider">Distancia</span>
+                  <strong class="text-teal-650 dark:text-teal-400 font-bold">{{ compared.p2.distance | number:'1.0-0' }} m</strong>
+                </div>
+
+                <!-- Sprints Row -->
+                <div class="flex justify-between items-center pb-0.5">
+                  <strong class="text-amber-600 dark:text-amber-400 font-bold">{{ compared.p1.sprints }}</strong>
+                  <span class="text-slate-400 dark:text-slate-500 font-sans text-[7.5px] uppercase tracking-wider">Sprints</span>
+                  <strong class="text-amber-600 dark:text-amber-400 font-bold">{{ compared.p2.sprints }}</strong>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <p class="text-slate-400 dark:text-slate-550 font-mono text-[9px] text-center py-4">Esperando datos de la sesión...</p>
+          }
+        }
+
+        <!-- Tab 3: Group Workload content -->
+        @if (activeTab() === 'group') {
+          @if (groupWorkload(); as group) {
+            <div class="space-y-3 font-mono text-[10px]">
+              <!-- Total Distance & Calories -->
+              <div class="grid grid-cols-2 gap-2">
+                <div class="p-2 rounded-lg bg-slate-50 dark:bg-[#0b0f19]/40 border border-slate-200/50 dark:border-slate-850/50 text-center">
+                  <span class="text-slate-400 dark:text-slate-500 font-sans block text-[7.5px] uppercase tracking-wider font-semibold">Distancia Total</span>
+                  <strong class="text-teal-650 dark:text-teal-400 font-bold text-[11px] mt-0.5 block">{{ group.totalDistance | number:'1.0-0' }} m</strong>
+                </div>
+                <div class="p-2 rounded-lg bg-slate-50 dark:bg-[#0b0f19]/40 border border-slate-200/50 dark:border-slate-850/50 text-center">
+                  <span class="text-slate-400 dark:text-slate-500 font-sans block text-[7.5px] uppercase tracking-wider font-semibold">Gasto Calorías</span>
+                  <strong class="text-slate-800 dark:text-slate-250 font-bold text-[11px] mt-0.5 block">{{ group.totalCalories }} kcal</strong>
+                </div>
+              </div>
+
+              <!-- Sprints & Intensity -->
+              <div class="grid grid-cols-2 gap-2">
+                <div class="p-2 rounded-lg bg-slate-50 dark:bg-[#0b0f19]/40 border border-slate-200/50 dark:border-slate-850/50 text-center">
+                  <span class="text-slate-400 dark:text-slate-500 font-sans block text-[7.5px] uppercase tracking-wider font-semibold">Sprints Plantel</span>
+                  <strong class="text-rose-500 font-bold text-[11px] mt-0.5 block">{{ group.totalSprints }}</strong>
+                </div>
+                <div class="p-2 rounded-lg bg-slate-50 dark:bg-[#0b0f19]/40 border border-slate-200/50 dark:border-slate-850/50 text-center">
+                  <span class="text-slate-400 dark:text-slate-500 font-sans block text-[7.5px] uppercase tracking-wider font-semibold">Intensidad</span>
+                  <strong class="font-bold text-[11px] mt-0.5 block"
+                          [class.text-emerald-500]="group.intensity === 'Moderada'"
+                          [class.text-rose-500]="group.intensity === 'Alta'"
+                          [class.text-slate-400]="group.intensity === 'Baja'">
+                    {{ group.intensity }}
+                  </strong>
+                </div>
+              </div>
+
+              <!-- Fatigue Index Bar -->
+              <div class="space-y-1 pt-1.5 border-t border-slate-100 dark:border-slate-850/60">
+                <div class="flex justify-between text-[7.5px] font-bold text-slate-400 dark:text-slate-500 uppercase font-sans">
+                  <span>Índice Fatiga Plantel</span>
+                  <span [class.text-rose-500]="group.fatiguePct > 70" [class.text-amber-500]="group.fatiguePct > 40 && group.fatiguePct <= 70" [class.text-teal-500]="group.fatiguePct <= 40">
+                    {{ group.fatiguePct }}%
+                  </span>
+                </div>
+                <div class="w-full h-1.5 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-250/20 dark:border-slate-850/40 flex">
+                  <div class="h-full transition-all duration-500"
+                       [style.width.%]="group.fatiguePct"
+                       [class.bg-teal-500]="group.fatiguePct <= 40"
+                       [class.bg-amber-500]="group.fatiguePct > 40 && group.fatiguePct <= 70"
+                       [class.bg-rose-500]="group.fatiguePct > 70">
+                  </div>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <p class="text-slate-400 dark:text-slate-550 font-mono text-[9px] text-center py-4">Esperando datos de la sesión...</p>
+          }
+        }
+      </article>
+      
+    </div>
+  </section>
+
+  <!-- Bottom Panel: Detailed Player Table + Live Logs -->
+  <section class="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+    
+    <app-player-table [players]="wsService.players()"></app-player-table>
+    
+    <app-live-log [logs]="wsService.logs()"></app-live-log>
+    
+  </section>
+
+</section>

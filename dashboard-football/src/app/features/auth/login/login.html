@@ -1,0 +1,73 @@
+<div class="min-h-screen flex items-center justify-center bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 px-4 relative select-none transition-colors duration-200">
+  
+  <!-- Theme Toggle Button in Top Right Corner -->
+  <div class="absolute top-6 right-6">
+    <button (click)="themeService.toggleTheme()" 
+            title="Cambiar tema"
+            class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 p-2 rounded-lg bg-white border border-slate-250 hover:bg-slate-100 dark:bg-[#0d1222] dark:border-slate-800 dark:hover:bg-slate-800 transition-colors cursor-pointer active:scale-95 shadow-sm">
+      @if (themeService.theme() === 'dark') {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707-.707M6.343 17.657l-.707-.707m12.728 0l-.707.707M6.343 6.343l-.707-.707m12.728 0A9 9 0 115.636 5.636 9 9 0 0117.657 5.657z" />
+        </svg>
+      } @else {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+      }
+    </button>
+  </div>
+
+  <div class="w-full max-w-sm bg-white border border-slate-200 dark:bg-[#0d1222] dark:border-slate-800 p-6 rounded-2xl shadow-md dark:shadow-none transition-colors duration-200">
+    
+    <!-- Flat Header -->
+    <div class="flex flex-col items-center mb-6">
+      <div class="text-slate-800 dark:text-slate-100 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          <path d="M2 12h20" />
+        </svg>
+      </div>
+      <h1 class="text-lg font-bold tracking-wide text-slate-800 dark:text-white uppercase transition-colors">
+        Fútbol Monitor
+      </h1>
+      <p class="text-[10px] text-slate-500">Acceso al Panel de Control</p>
+    </div>
+
+    <!-- Login Form Fields -->
+    <div class="space-y-4 text-xs">
+      
+      <!-- User Input -->
+      <div>
+        <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1.5">Usuario</label>
+        <input
+          type="text"
+          placeholder="Usuario"
+          class="w-full bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-200 rounded-lg py-2.5 px-3 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors">
+      </div>
+
+      <!-- Password Input -->
+      <div>
+        <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1.5">Contraseña</label>
+        <input
+          type="password"
+          placeholder="••••••••"
+          class="w-full bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-200 rounded-lg py-2.5 px-3 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors">
+      </div>
+
+      <!-- Action Button -->
+      <button
+        (click)="login()"
+        class="w-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-950 font-semibold rounded-lg py-2.5 mt-6 cursor-pointer active:scale-[0.99] transition-all shadow-sm">
+        Ingresar al Sistema
+      </button>
+      
+    </div>
+
+    <!-- Footer meta -->
+    <div class="mt-6 text-center border-t border-slate-200 dark:border-slate-800 pt-4">
+      <span class="text-[9px] text-slate-400 dark:text-slate-500 font-mono">Distribuidas 2026</span>
+    </div>
+
+  </div>
+</div>
