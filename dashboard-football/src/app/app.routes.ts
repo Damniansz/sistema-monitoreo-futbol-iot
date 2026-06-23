@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
 
@@ -16,7 +18,15 @@ export const routes: Routes = [
   },
 
   {
+    path: 'oauth2/callback',
+    loadComponent: () =>
+      import('./features/auth/oauth-callback/oauth-callback')
+        .then(m => m.OAuthCallback)
+  },
+
+  {
     path: '',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./shared/layouts/main-layout/main-layout')
         .then(m => m.MainLayout),

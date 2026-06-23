@@ -9,7 +9,7 @@ export class ThemeService {
   readonly theme = signal<Theme>('light');
 
   constructor() {
-    // Check saved theme or default to light (for the requested lighter color scheme)
+    // Verifica el tema guardado o usa el claro por defecto (para el esquema de colores claros solicitado)
     const saved = localStorage.getItem('theme') as Theme;
     if (saved === 'dark' || saved === 'light') {
       this.theme.set(saved);
@@ -17,7 +17,7 @@ export class ThemeService {
       this.theme.set('light');
     }
 
-    // Reactively update the class list on the root document
+    // Actualiza de forma reactiva la lista de clases en el documento raíz
     effect(() => {
       const current = this.theme();
       const root = window.document.documentElement;

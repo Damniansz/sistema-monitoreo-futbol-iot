@@ -63,6 +63,7 @@
   </section>
 
   <!-- Content Grid: Heatmap, Trend Chart + Tactical Field, Status -->
+  @if (isStaff()) {
   <section class="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
     <div class="space-y-5">
       
@@ -528,6 +529,7 @@
       
     </div>
   </section>
+  }
 
   <!-- Bottom Panel: Detailed Player Table + Live Logs -->
   <section class="grid gap-5 lg:grid-cols-[1.4fr_1fr]">

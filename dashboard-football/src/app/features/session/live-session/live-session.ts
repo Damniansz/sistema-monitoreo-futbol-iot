@@ -22,10 +22,10 @@ export class LiveSession implements OnInit, OnDestroy {
   protected readonly wsService = inject(WebsocketService);
   protected readonly Math = Math;
 
-  // Visual controls
+  // Controles visuales
   readonly showConnectionLines = signal<boolean>(true);
 
-  // Session Stopwatch Timer
+  // Cronómetro de la sesión
   readonly sessionTime = signal<number>(0);
   readonly isTimerRunning = signal<boolean>(true);
   private timerIntervalId: any;
@@ -50,7 +50,7 @@ export class LiveSession implements OnInit, OnDestroy {
     this.sessionTime.set(0);
   }
 
-  // Format stopwatch seconds to HH:MM:SS or MM:SS
+  // Da formato a los segundos del cronómetro a HH:MM:SS o MM:SS
   get formattedTime(): string {
     const s = this.sessionTime();
     const hrs = Math.floor(s / 3600);
@@ -64,8 +64,8 @@ export class LiveSession implements OnInit, OnDestroy {
     return `${pad(mins)}:${pad(secs)}`;
   }
 
-  // Compute individual cardiovascular loading stats for each active player
-  // Speed maps to heart rate zone estimates, which is a standard sport science concept
+  // Calcula las estadísticas de carga cardiovascular individuales para cada jugador activo
+  // La velocidad se mapea a estimaciones de la zona de frecuencia cardíaca, un concepto estándar de la ciencia deportiva
   get playerCardioZones() {
     const list = this.wsService.players();
     return list.map(p => {
@@ -73,7 +73,7 @@ export class LiveSession implements OnInit, OnDestroy {
       let hrEstimate = '< 120 lpm';
       let colorClass = 'text-slate-400 border-slate-200/60 dark:border-slate-800/60';
       let progressClass = 'bg-slate-350 dark:bg-slate-600';
-      let hrPercent = Math.round(55 + (p.speed / 35) * 45); // estimate between 55% and 100% HR max
+      let hrPercent = Math.round(55 + (p.speed / 35) * 45); // estimación entre el 55% y el 100% de la frecuencia cardíaca máxima
       
       if (p.speed >= 25) {
         zone = 'Máximo (Sprint)';

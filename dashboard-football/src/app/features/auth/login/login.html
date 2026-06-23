@@ -1,72 +1,111 @@
-<div class="min-h-screen flex items-center justify-center bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 px-4 relative select-none transition-colors duration-200">
-  
+<div
+  class="min-h-screen flex items-center justify-center bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 px-4 relative select-none transition-colors duration-200">
+
   <!-- Theme Toggle Button in Top Right Corner -->
   <div class="absolute top-6 right-6">
-    <button (click)="themeService.toggleTheme()" 
-            title="Cambiar tema"
-            class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 p-2 rounded-lg bg-white border border-slate-250 hover:bg-slate-100 dark:bg-[#0d1222] dark:border-slate-800 dark:hover:bg-slate-800 transition-colors cursor-pointer active:scale-95 shadow-sm">
+    <button (click)="themeService.toggleTheme()" title="Cambiar tema"
+      class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 p-2 rounded-lg bg-white border border-slate-250 hover:bg-slate-100 dark:bg-[#0d1222] dark:border-slate-800 dark:hover:bg-slate-800 transition-colors cursor-pointer active:scale-95 shadow-sm">
       @if (themeService.theme() === 'dark') {
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707-.707M6.343 17.657l-.707-.707m12.728 0l-.707.707M6.343 6.343l-.707-.707m12.728 0A9 9 0 115.636 5.636 9 9 0 0117.657 5.657z" />
-        </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+        stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707-.707M6.343 17.657l-.707-.707m12.728 0l-.707.707M6.343 6.343l-.707-.707m12.728 0A9 9 0 115.636 5.636 9 9 0 0117.657 5.657z" />
+      </svg>
       } @else {
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-        </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+        stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+      </svg>
       }
     </button>
   </div>
 
-  <div class="w-full max-w-sm bg-white border border-slate-200 dark:bg-[#0d1222] dark:border-slate-800 p-6 rounded-2xl shadow-md dark:shadow-none transition-colors duration-200">
-    
+  <div
+    class="w-full max-w-sm bg-white border border-slate-200 dark:bg-[#0d1222] dark:border-slate-800 p-6 rounded-2xl shadow-md dark:shadow-none transition-colors duration-200">
+
     <!-- Flat Header -->
     <div class="flex flex-col items-center mb-6">
       <div class="text-slate-800 dark:text-slate-100 mb-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <!-- <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          stroke-width="2">
           <circle cx="12" cy="12" r="10" />
           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
           <path d="M2 12h20" />
+        </svg> -->
+        <svg class="h-12 w-12 fill-slate-800 dark:fill-white transition-colors" viewBox="0 0 512 512"
+          xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M255.03 33.813c-1.834-.007-3.664-.007-5.5.03-6.73.14-13.462.605-20.155 1.344.333.166.544.32.47.438L204.78 75.063l73.907 49.437-.125.188 70.625.28L371 79.282 342.844 52c-15.866-6.796-32.493-11.776-49.47-14.78-12.65-2.24-25.497-3.36-38.343-3.407zM190.907 88.25l-73.656 36.78-13.813 98.407 51.344 33.657 94.345-43.438 14.875-76.5-73.094-48.906zm196.344.344l-21.25 44.5 36.75 72.72 62.063 38.905 11.312-21.282c.225.143.45.403.656.75-.77-4.954-1.71-9.893-2.81-14.782-6.446-28.59-18.59-55.962-35.5-79.97-9.07-12.872-19.526-24.778-31.095-35.5l-20.125-5.342zm-302.656 23c-6.906 8.045-13.257 16.56-18.938 25.5-15.676 24.664-26.44 52.494-31.437 81.312C31.783 232.446 30.714 246.73 31 261l20.25 5.094 33.03-40.5L98.75 122.53l-14.156-10.936zm312.719 112.844l-55.813 44.75-3.47 101.093 39.626 21.126 77.188-49.594 4.406-78.75-.094.157-61.844-38.783zm-140.844 6.406l-94.033 43.312-1.218 76.625 89.155 57.376 68.938-36.437 3.437-101.75-66.28-39.126zm-224.22 49.75c.91 8.436 2.29 16.816 4.156 25.094 6.445 28.59 18.62 55.96 35.532 79.968 3.873 5.5 8.02 10.805 12.374 15.938l-9.374-48.156.124-.032-27.03-68.844-15.782-3.968zm117.188 84.844l-51.532 8.156 10.125 52.094c8.577 7.49 17.707 14.332 27.314 20.437 14.612 9.287 30.332 16.88 46.687 22.594l62.626-13.69-4.344-31.124-90.875-58.47zm302.437.5l-64.22 41.25-42 47.375 4.408 6.156c12.027-5.545 23.57-12.144 34.406-19.72 23.97-16.76 44.604-38.304 60.28-62.97 2.51-3.947 4.87-7.99 7.125-12.092zm-122.78 97.656l-79.94 9.625-25.968 5.655c26.993 4 54.717 3.044 81.313-2.813 9.412-2.072 18.684-4.79 27.75-8.062l-3.156-4.406z" />
         </svg>
       </div>
       <h1 class="text-lg font-bold tracking-wide text-slate-800 dark:text-white uppercase transition-colors">
-        Fútbol Monitor
+        Futbol Monitor
       </h1>
       <p class="text-[10px] text-slate-500">Acceso al Panel de Control</p>
     </div>
 
     <!-- Login Form Fields -->
     <div class="space-y-4 text-xs">
-      
+
       <!-- User Input -->
       <div>
         <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1.5">Usuario</label>
-        <input
-          type="text"
-          placeholder="Usuario"
+        <input type="text" [ngModel]="username()" (ngModelChange)="username.set($event)" placeholder="Usuario"
           class="w-full bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-200 rounded-lg py-2.5 px-3 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors">
       </div>
 
       <!-- Password Input -->
       <div>
         <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1.5">Contraseña</label>
-        <input
-          type="password"
-          placeholder="••••••••"
+        <input type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" placeholder="••••••••"
+          (keyup.enter)="login()"
           class="w-full bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-200 rounded-lg py-2.5 px-3 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 transition-colors">
       </div>
 
       <!-- Action Button -->
-      <button
-        (click)="login()"
-        class="w-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-950 font-semibold rounded-lg py-2.5 mt-6 cursor-pointer active:scale-[0.99] transition-all shadow-sm">
+      <button (click)="login()" [disabled]="loading()"
+        class="w-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-950 font-semibold rounded-lg py-2.5 mt-6 cursor-pointer active:scale-[0.99] transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+        @if (loading()) {
+        <span class="animate-pulse">Autenticando...</span>
+        } @else {
         Ingresar al Sistema
+        }
       </button>
-      
+
+      <!-- Divisor -->
+      <div class="relative flex py-5 items-center">
+        <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+        <span
+          class="flex-shrink-0 mx-4 text-slate-400 dark:text-slate-500 text-[10px] uppercase font-semibold tracking-wider">o</span>
+        <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+      </div>
+
+      <!-- Google Button -->
+      <button (click)="loginWithGoogle()" type="button"
+        class="flex items-center justify-center w-full bg-white dark:bg-[#151c2e] border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#1a233a] text-slate-700 dark:text-slate-200 font-medium rounded-lg py-2.5 cursor-pointer active:scale-[0.99] transition-all shadow-sm">
+        <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+            fill="#4285F4" />
+          <path
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            fill="#34A853" />
+          <path
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+            fill="#FBBC05" />
+          <path
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+            fill="#EA4335" />
+        </svg>
+        Continuar con Google
+      </button>
+
     </div>
 
     <!-- Footer meta -->
     <div class="mt-6 text-center border-t border-slate-200 dark:border-slate-800 pt-4">
-      <span class="text-[9px] text-slate-400 dark:text-slate-500 font-mono">Distribuidas 2026</span>
+      <span class="text-[9px] text-slate-400 dark:text-slate-500 font-mono"> FUTBOL MONITOR</span>
     </div>
 
   </div>

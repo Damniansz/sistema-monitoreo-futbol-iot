@@ -1,65 +1,107 @@
-<div class="space-y-5 text-slate-700 dark:text-slate-200 text-xs transition-colors duration-200">
+<div class="space-y-6 text-slate-700 dark:text-slate-200 text-xs transition-colors duration-200">
   
-  <!-- Header -->
-  <header class="border-b border-slate-200 dark:border-slate-800 pb-3 flex justify-between items-center">
+  <!-- Header & Filters -->
+  <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
     <div>
-      <span class="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider font-mono">Historial Deportivo</span>
-      <h2 class="text-base font-bold text-slate-800 dark:text-white">Sesiones de Entrenamiento Completadas</h2>
+      <span class="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider font-mono">Análisis Histórico</span>
+      <h2 class="text-lg font-bold text-slate-800 dark:text-white">Métricas de Rendimiento</h2>
     </div>
-    <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-805 text-[9px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono rounded border border-slate-200 dark:border-none">
-      {{ sessions().length }} Registradas
-    </span>
+
+    <!-- Filters -->
+    <div class="flex items-center gap-3 bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div class="flex items-center gap-2">
+        <label class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Jugador:</label>
+        <select 
+          [ngModel]="selectedPlayer()" 
+          (ngModelChange)="selectedPlayer.set($event); onFilterChange()"
+          class="bg-slate-50 dark:bg-slate-800 border-none text-xs rounded-md px-2 py-1.5 focus:ring-1 focus:ring-blue-500 outline-none text-slate-700 dark:text-slate-300 font-medium">
+          @for (player of players; track player) {
+            <option [value]="player">{{ player }}</option>
+          }
+        </select>
+      </div>
+      <div class="w-px h-6 bg-slate-200 dark:bg-slate-800"></div>
+      <div class="flex items-center gap-2">
+        <label class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Fecha:</label>
+        <input 
+          type="date" 
+          [ngModel]="selectedDate()" 
+          (ngModelChange)="selectedDate.set($event); onFilterChange()"
+          class="bg-slate-50 dark:bg-slate-800 border-none text-xs rounded-md px-2 py-1.5 focus:ring-1 focus:ring-blue-500 outline-none text-slate-700 dark:text-slate-300 font-mono">
+      </div>
+    </div>
   </header>
 
-  <!-- Table Container -->
-  <div class="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-sm dark:shadow-none transition-colors duration-200">
-    <div class="overflow-x-auto">
-      <table class="w-full border-collapse text-left">
-        <thead>
-          <tr class="border-b border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/20 text-[10px] font-semibold text-slate-555 dark:text-slate-400 uppercase tracking-wider">
-            <th class="px-4 py-3 font-medium">Entrenamiento</th>
-            <th class="px-4 py-3 font-medium">Fecha</th>
-            <th class="px-4 py-3 text-center font-medium">Duración</th>
-            <th class="px-4 py-3 text-center font-medium">Dispositivos</th>
-            <th class="px-4 py-3 text-right font-medium">Velocidad Promedio</th>
-            <th class="px-4 py-3 text-right font-medium">Distancia Total</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-600 dark:text-slate-350">
-          @for (sess of sessions(); track sess.id) {
-            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-850/30 transition-colors">
-              <td class="px-4 py-3">
-                <div>
-                  <span class="font-semibold text-slate-800 dark:text-slate-200 block">{{ sess.name }}</span>
-                  <span class="text-[9px] font-mono text-slate-400 dark:text-slate-550">{{ sess.id }}</span>
-                </div>
-              </td>
-              
-              <td class="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono">
-                {{ sess.date }}
-              </td>
-
-              <td class="px-4 py-3 text-center text-slate-500 dark:text-slate-400 font-mono">
-                {{ sess.duration }}
-              </td>
-
-              <td class="px-4 py-3 text-center">
-                <span class="text-[10px] text-slate-600 dark:text-slate-400 font-mono">
-                  {{ sess.playerCount }} GPS
-                </span>
-              </td>
-
-              <td class="px-4 py-3 text-right font-mono font-semibold text-slate-705 dark:text-slate-250">
-                {{ sess.avgSpeed | number:'1.1-1' }} <span class="text-[9px] text-slate-400 dark:text-slate-550 font-normal">km/h</span>
-              </td>
-
-              <td class="px-4 py-3 text-right font-mono font-semibold text-slate-705 dark:text-slate-250">
-                {{ sess.totalDistance | number:'1.0-0' }} <span class="text-[9px] text-slate-400 dark:text-slate-550 font-normal">m</span>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex justify-center items-center py-20">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
     </div>
-  </div>
+  } @else {
+    <!-- Chart Section -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 transition-colors duration-200">
+      <div class="mb-2">
+        <h3 class="font-bold text-sm text-slate-800 dark:text-white">Curva de Velocidad</h3>
+        <p class="text-[10px] text-slate-500 dark:text-slate-400">Variación de velocidad durante la sesión seleccionada</p>
+      </div>
+      
+      <div class="w-full h-[350px]">
+        @if (chartOptions()) {
+          <apx-chart
+            [series]="chartOptions()!.series"
+            [chart]="chartOptions()!.chart"
+            [xaxis]="chartOptions()!.xaxis"
+            [yaxis]="chartOptions()!.yaxis"
+            [stroke]="chartOptions()!.stroke"
+            [dataLabels]="chartOptions()!.dataLabels"
+            [colors]="chartOptions()!.colors"
+            [grid]="chartOptions()!.grid"
+            [tooltip]="chartOptions()!.tooltip"
+          ></apx-chart>
+        }
+      </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-sm transition-colors duration-200">
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800">
+        <h3 class="font-bold text-sm text-slate-800 dark:text-white">Registro Detallado</h3>
+      </div>
+      <div class="overflow-x-auto max-h-[400px]">
+        <table class="w-full border-collapse text-left relative">
+          <thead class="sticky top-0 bg-slate-50 dark:bg-slate-900 z-10 shadow-sm">
+            <tr class="border-b border-slate-200 dark:border-slate-800 text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              <th class="px-4 py-3 font-medium">Hora</th>
+              <th class="px-4 py-3 font-medium">Jugador</th>
+              <th class="px-4 py-3 text-right font-medium">Velocidad</th>
+              <th class="px-4 py-3 text-right font-medium">Distancia Acumulada</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-600 dark:text-slate-300">
+            @for (metric of metrics(); track metric.timestamp) {
+              <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                <td class="px-4 py-2.5 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                  {{ metric.timestamp | date:'HH:mm:ss' }}
+                </td>
+                <td class="px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-200">
+                  {{ metric.player }}
+                </td>
+                <td class="px-4 py-2.5 text-right font-mono font-semibold text-blue-600 dark:text-blue-400">
+                  {{ metric.speed | number:'1.2-2' }} <span class="text-[9px] text-slate-400 font-normal">km/h</span>
+                </td>
+                <td class="px-4 py-2.5 text-right font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                  {{ metric.distance | number:'1.0-0' }} <span class="text-[9px] text-slate-400 font-normal">m</span>
+                </td>
+              </tr>
+            }
+            @if (metrics().length === 0) {
+              <tr>
+                <td colspan="4" class="px-4 py-8 text-center text-slate-500">No hay datos históricos para este jugador en la fecha seleccionada.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
 </div>

@@ -20,4 +20,6 @@ public class PlayerMetricDto {
     private double distance;
 
     private String status;
+
+    private java.time.Instant timestamp;
 }

@@ -7,6 +7,7 @@ import { LiveLog } from '../../../shared/components/live-log/live-log';
 import { KpiCard } from '../../../shared/components/kpi-card/kpi-card';
 import { StatusCard } from '../../../shared/components/status-card/status-card';
 import { WebsocketService } from '../../../core/services/websocket.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-dashboard-home',
@@ -25,19 +26,26 @@ import { WebsocketService } from '../../../core/services/websocket.service';
 })
 export class DashboardHome {
   protected readonly wsService = inject(WebsocketService);
+  protected readonly authService = inject(AuthService);
   protected readonly Math = Math;
 
-  // Interactive controls
+  readonly isStaff = computed(() => {
+    return this.authService.hasRole('ADMIN') || 
+           this.authService.hasRole('COACH') || 
+           this.authService.hasRole('ANALYST');
+  });
+
+  // Controles interactivos
   readonly selectedPlayer = signal<string>('all');
   readonly heatmapMode = signal<'occupancy' | 'speed'>('occupancy');
   readonly hoveredIndex = signal<number | null>(null);
 
-  // Tabbed advanced widget control
+  // Control del widget avanzado de pestañas
   readonly activeTab = signal<'leaders' | 'compare' | 'group'>('leaders');
   readonly comparePlayer1 = signal<string>('');
   readonly comparePlayer2 = signal<string>('');
 
-  // Position mapping to field boundaries
+  // Mapeo de posición a los límites del campo
   private normalizeY(v: number): number {
     const height = 180;
     const maxRange = 35;
@@ -45,23 +53,23 @@ export class DashboardHome {
     return height - 15 - (clamped / maxRange) * (height - 30);
   }
 
-  // Set selected player for heatmap
+  // Establece el jugador seleccionado para el mapa de calor
   protected onPlayerChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.selectedPlayer.set(value);
   }
 
-  // Set heatmap mode
+  // Establece el modo del mapa de calor
   protected onModeChange(mode: 'occupancy' | 'speed'): void {
     this.heatmapMode.set(mode);
   }
 
-  // Tab controls
+  // Controles de pestañas
   protected onTabChange(tab: 'leaders' | 'compare' | 'group'): void {
     this.activeTab.set(tab);
   }
 
-  // Compare dropdown changes
+  // Cambios en los menús desplegables de comparación
   protected onCompareP1Change(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.comparePlayer1.set(value);
@@ -72,7 +80,7 @@ export class DashboardHome {
     this.comparePlayer2.set(value);
   }
 
-  // Compute heatmap coordinates and styling based on active filters
+  // Calcula las coordenadas y el estilo del mapa de calor basándose en los filtros activos
   readonly heatmapPoints = computed(() => {
     const sel = this.selectedPlayer();
     const mode = this.heatmapMode();
@@ -86,7 +94,7 @@ export class DashboardHome {
       const baseSize = isSingle ? 24 : 16;
       
       tracking.forEach((pt) => {
-        let colorClass = 'bg-amber-500'; // Default warm occupancy halo
+        let colorClass = 'bg-amber-500'; // Halo de ocupación cálido por defecto
         if (mode === 'speed') {
           if (pt.speed < 5) colorClass = 'bg-slate-400 dark:bg-slate-500';
           else if (pt.speed <= 12) colorClass = 'bg-emerald-500';
@@ -95,8 +103,8 @@ export class DashboardHome {
         }
         
         points.push({
-          x: (pt.x / 100) * 100, // map to percent of field width
-          y: (pt.y / 60) * 100,  // map to percent of field height
+          x: (pt.x / 100) * 100, // mapear al porcentaje del ancho del campo
+          y: (pt.y / 60) * 100,  // mapear al porcentaje de la altura del campo
           colorClass,
           opacity: baseOpacity,
           size: baseSize
@@ -115,7 +123,7 @@ export class DashboardHome {
     return points;
   });
 
-  // Smooth cubic Bezier curves generator
+  // Generador de curvas Bézier cúbicas suaves
   private getCurvePathForPoints(points: number[]): string {
     if (points.length === 0) return '';
     if (points.length === 1) {
@@ -132,7 +140,7 @@ export class DashboardHome {
       const x2 = (i + 1) * horizontalStep;
       const y2 = this.normalizeY(points[i + 1]);
       
-      // Control points for smooth interpolation
+      // Puntos de control para una interpolación suave
       const cpX1 = x1 + horizontalStep / 3;
       const cpY1 = y1;
       const cpX2 = x2 - horizontalStep / 3;
@@ -152,7 +160,7 @@ export class DashboardHome {
     const path = this.avgTrendPath();
     if (!path || points.length === 0) return '';
     const lastX = 420;
-    const bottomY = 165; // bottom boundary of the chart SVG (height - 15)
+    const bottomY = 165; // Límite inferior del gráfico SVG (alto - 15)
     return `${path} L ${lastX} ${bottomY} L 0 ${bottomY} Z`;
   });
 
@@ -160,7 +168,7 @@ export class DashboardHome {
     return this.getCurvePathForPoints(this.wsService.maxSpeedHistory());
   });
 
-  // Interactive mouse events on trend SVG
+  // Eventos interactivos del ratón en el gráfico de tendencia SVG
   protected onChartMouseMove(event: MouseEvent): void {
     const svg = event.currentTarget as SVGElement;
     const rect = svg.getBoundingClientRect();
@@ -178,7 +186,7 @@ export class DashboardHome {
     this.hoveredIndex.set(null);
   }
 
-  // Data exposed to interactive trend tooltip card
+  // Datos expuestos a la tarjeta interactiva de información sobre la tendencia (tooltip)
   readonly hoveredData = computed(() => {
     const idx = this.hoveredIndex();
     if (idx === null) return null;
@@ -208,7 +216,7 @@ export class DashboardHome {
     };
   });
 
-  // Player effort profiles (speed zone percentages and sprints count)
+  // Perfiles de esfuerzo del jugador (porcentajes de zonas de velocidad y conteo de sprints)
   readonly playerEfforts = computed(() => {
     const list = this.wsService.players();
     const breakdowns = this.wsService.playerZoneBreakdown();
@@ -224,7 +232,7 @@ export class DashboardHome {
       const run = total > 0 ? Math.round((bd.run / total) * 100) : 0;
       const sprint = total > 0 ? Math.round((bd.sprint / total) * 100) : 0;
       
-      // Correct minor rounding discrepancies to sum exactly 100
+      // Corrige discrepancias menores de redondeo para sumar exactamente 100
       const sum = walk + trot + run + sprint;
       const adjustedSprint = sprint + (100 - sum);
 
@@ -244,7 +252,7 @@ export class DashboardHome {
     });
   });
 
-  // Tab 1: Computed Leaders
+  // Pestaña 1: Líderes calculados
   readonly sessionLeaders = computed(() => {
     const list = this.wsService.players();
     const maxSpeeds = this.wsService.playerMaxSpeeds();
@@ -286,7 +294,7 @@ export class DashboardHome {
     };
   });
 
-  // Tab 2: Computed Compared Players Side-by-side
+  // Pestaña 2: Jugadores comparados lado a lado calculados
   readonly comparedPlayers = computed(() => {
     const list = this.wsService.players();
     if (list.length === 0) return null;
@@ -339,7 +347,7 @@ export class DashboardHome {
     };
   });
 
-  // Tab 3: Group Workload
+  // Pestaña 3: Carga de trabajo grupal
   readonly groupWorkload = computed(() => {
     const list = this.wsService.players();
     const sprints = this.wsService.playerSprintCounts();
@@ -347,7 +355,7 @@ export class DashboardHome {
     
     const totalSprints = Object.values(sprints).reduce((acc, s) => acc + s, 0);
     const totalDistance = list.reduce((acc, p) => acc + p.distance, 0);
-    const totalCalories = Math.round(totalDistance * 0.08); // soccer heuristic
+    const totalCalories = Math.round(totalDistance * 0.08); // heurística de fútbol
     const avgSpeed = this.wsService.averageSpeed();
     
     let intensity = 'Baja';

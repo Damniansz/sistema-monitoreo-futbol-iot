@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.time.Instant;
 
 @Component
 public class SoccerPhysicsEngine implements SimulationEngine {
@@ -83,14 +84,14 @@ public class SoccerPhysicsEngine implements SimulationEngine {
                 player.status = "Reposo";
             }
 
-            // Add DTO to the batch list
             metrics.add(new PlayerMetricDto(
                     player.name,
                     player.speed,
                     player.x,
                     player.y,
                     player.distance,
-                    player.status
+                    player.status,
+                    Instant.now()
             ));
         }
 
